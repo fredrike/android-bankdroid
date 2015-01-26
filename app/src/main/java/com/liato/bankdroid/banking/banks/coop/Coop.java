@@ -228,6 +228,20 @@ public class Coop extends Bank {
         login();
 
         try {
+            response = urlopen.open("https://www.coop.se/Mina-sidor/Oversikt/Mina-poang/");
+            Document dResponse = Jsoup.parse(response);
+            Account poang = new Account("Poäng",
+                    Helpers.parseBalance(dResponse.select(".Grid-cell--1 p").text()),
+                    "poang", Account.OTHER, "");
+            List<Transaction> transactions = new ArrayList<Transaction>();
+            poang.setTransactions(transactions);
+            for (Element e : dResponse.select(".Timeline-item")) {
+                transactions.add(new Transaction(
+                    formatDate(e.select(".Timeline-header .u-nbfcAlt span").text()),
+                    e.select(".u-block").text(),
+                    Helpers.parseBalance(e.select(".Timeline-header .Timeline-title").first().ownText()), ""));
+            }
+            accounts.add(poang);
             for (AccountType at : AccountType.values()) {
                 response = urlopen.open(at.getUrl());
                 Document d = Jsoup.parse(response);
